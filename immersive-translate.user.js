@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        沉浸式翻译 (Immersive Translate Lite)
 // @namespace   https://minis.app
-// @version     3.5.0
+// @version     3.6.0
 // @description 沉浸式翻译精简版 · openai-compatible 自定义渠道 · API 连通测试
 // @author      Minis
 // @match       *://*/*
@@ -10,7 +10,6 @@
 // @grant       GM_getValue
 // @grant       GM_deleteValue
 // @grant       GM_registerMenuCommand
-
 // @connect     api.openai.com
 // @connect     api.deepseek.com
 // @connect     api.anthropic.com
@@ -19,6 +18,8 @@
 // @connect     *
 // @run-at      document-end
 // @noframes
+// @downloadURL https://raw.githubusercontent.com/KeyLiN913/immersive-translate-lite/master/immersive-translate.user.js
+// @updateURL   https://raw.githubusercontent.com/KeyLiN913/immersive-translate-lite/master/immersive-translate.user.js
 // ==/UserScript==
 
 (function() {
@@ -563,7 +564,7 @@ function showChannelMgr(refreshCallback) {
 
   // FAB
   const fab = document.createElement('div');
-  fab.id = 'imtr-fab'; fab.textContent = '翻'; fab.title = 'v3.5.0';
+  fab.id = 'imtr-fab'; fab.textContent = '翻'; fab.title = 'v3.6.0';
   document.body.appendChild(fab);
 
   // Overlay
