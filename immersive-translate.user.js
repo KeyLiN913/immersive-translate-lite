@@ -857,6 +857,23 @@ Songs: Keep English titles (Girls Never Die, Generation, Rising, etc.)
 
   // 启动 UI（带 body 就绪重试）
   try { initUI(); } catch(e) { console.warn('[imtr] UI init failed:', e); setTimeout(initUI, 1000); }
+
+  // ── 持久化：SPA 重渲染后自动补回 FAB ──
+  let _retryTimer = null;
+  const _guard = new MutationObserver(() => {
+    if (!document.getElementById('imtr-fab') && document.body) {
+      clearTimeout(_retryTimer);
+      _retryTimer = setTimeout(() => initUI(), 100);
+    }
+  });
+  function startGuard() {
+    if (document.body) {
+      _guard.observe(document.body, { childList: true, subtree: false });
+    } else {
+      setTimeout(startGuard, 500);
+    }
+  }
+  startGuard();
 })();
 
 // ══════════════════════════════════
