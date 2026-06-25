@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        沉浸式翻译 (Immersive Translate Lite)
 // @namespace   https://minis.app
-// @version     3.6.0
+// @version     3.7.0
 // @description 沉浸式翻译精简版 · openai-compatible 自定义渠道 · API 连通测试
 // @author      Minis
 // @match       *://*/*
@@ -31,8 +31,11 @@
 
 const Store = {
   _c: {},
-  g(k, f) { if (this._c[k] !== undefined) return this._c[k]; try { this._c[k] = GM_getValue(k, f); } catch { this._c[k] = f; } return this._c[k]; },
-  s(k, v) { this._c[k] = v; try { GM_setValue(k, v); } catch {} },
+  g(k, f) {
+    try { const v = GM_getValue(k); return v !== undefined ? v : (f !== undefined ? f : undefined); }
+    catch { return f !== undefined ? f : undefined; }
+  },
+  s(k, v) { try { GM_setValue(k, v); } catch {} },
 };
 
 const BUILTIN = [
@@ -451,7 +454,7 @@ function showChannelMgr(refreshCallback) {
   document.body.appendChild(modal);
 
   function getChannels() { return safeJSON(Store.g('cc', DEF.customChannels)); }
-  function saveChannels(chs) { Store.s('cc', JSON.stringify(chs)); }
+  function saveChannels(chs) { console.log('[imtr] saveChannels: ' + JSON.stringify(chs)); Store.s('cc', JSON.stringify(chs)); }
 
   function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 
@@ -672,13 +675,14 @@ function showChannelMgr(refreshCallback) {
   // ── Render providers ──
   function renderProviders() {
     const cur = Store.g('p', DEF.provider);
+    const chs = safeJSON(Store.g('cc', DEF.customChannels));
+    console.log('[imtr] renderProviders: cur=' + cur, 'channels=' + chs.length, 'chs=' + JSON.stringify(chs));
     provSel.innerHTML = '';
     BUILTIN.forEach(p => {
       const o = document.createElement('option');
       o.value = p.id; o.textContent = p.icon + ' ' + p.name;
       provSel.appendChild(o);
     });
-    const chs = safeJSON(Store.g('cc', DEF.customChannels));
     if (chs.length) {
       const og = document.createElement('optgroup'); og.label = '🔌 自定义';
       chs.forEach(ch => {
