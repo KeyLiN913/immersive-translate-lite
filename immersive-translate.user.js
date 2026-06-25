@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        沉浸式翻译 (Immersive Translate Lite)
 // @namespace   https://minis.app
-// @version     3.4.0
+// @version     3.5.0
 // @description 沉浸式翻译精简版 · openai-compatible 自定义渠道 · API 连通测试
 // @author      Minis
 // @match       *://*/*
@@ -563,7 +563,7 @@ function showChannelMgr(refreshCallback) {
 
   // FAB
   const fab = document.createElement('div');
-  fab.id = 'imtr-fab'; fab.textContent = '翻';
+  fab.id = 'imtr-fab'; fab.textContent = '翻'; fab.title = 'v3.5.0';
   document.body.appendChild(fab);
 
   // Overlay
@@ -856,24 +856,19 @@ Songs: Keep English titles (Girls Never Die, Generation, Rising, etc.)
   }
 
   // 启动 UI（带 body 就绪重试）
-  try { initUI(); } catch(e) { console.warn('[imtr] UI init failed:', e); setTimeout(initUI, 1000); }
+  try { initUI(); } catch(e) { console.warn('[imtr] UI init failed:', e); }
 
-  // ── 持久化：SPA 重渲染后自动补回 FAB ──
-  let _retryTimer = null;
-  const _guard = new MutationObserver(() => {
+  // ── 持久化守卫：Next.js/SPA 重渲染后自动补回 FAB ──
+  // 用 requestAnimationFrame 轮询，开销极小，不会被 body 替换断开
+  let _guardActive = true;
+  function guard() {
+    if (!_guardActive) return;
     if (!document.getElementById('imtr-fab') && document.body) {
-      clearTimeout(_retryTimer);
-      _retryTimer = setTimeout(() => initUI(), 100);
+      initUI();
     }
-  });
-  function startGuard() {
-    if (document.body) {
-      _guard.observe(document.body, { childList: true, subtree: false });
-    } else {
-      setTimeout(startGuard, 500);
-    }
+    requestAnimationFrame(guard);
   }
-  startGuard();
+  requestAnimationFrame(guard);
 })();
 
 // ══════════════════════════════════
