@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        沉浸式翻译 (Immersive Translate Lite)
 // @namespace   https://minis.app
-// @version     3.7.0
+// @version     3.8.0
 // @description 沉浸式翻译精简版 · openai-compatible 自定义渠道 · API 连通测试
 // @author      Minis
 // @match       *://*/*
@@ -512,6 +512,7 @@ function showChannelMgr(refreshCallback) {
 
   // Add handler
   document.getElementById('imtr-cm-add').onclick = () => {
+    console.log('[imtr] cm-add clicked');
     const name = document.getElementById('imtr-cm-name').value.trim();
     const u = document.getElementById('imtr-cm-url').value.trim();
     const k = document.getElementById('imtr-cm-key').value.trim();
@@ -692,6 +693,7 @@ function showChannelMgr(refreshCallback) {
       provSel.appendChild(og);
     }
     provSel.value = cur;
+    console.log('[imtr] provSel options:', provSel.options.length, 'groups:', provSel.querySelectorAll('optgroup').length);
   }
 
   // ── Toggle visibility ──
