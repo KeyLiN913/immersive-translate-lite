@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        沉浸式翻译 (Immersive Translate Lite)
 // @namespace   https://minis.app
-// @version     3.8.0
+// @version     3.9.0
 // @description 沉浸式翻译精简版 · openai-compatible 自定义渠道 · API 连通测试
 // @author      Minis
 // @match       *://*/*
@@ -40,10 +40,11 @@ const Store = {
 
 const BUILTIN = [
   { id:'google-translate', icon:'🆓', name:'Google 翻译', needsKey:0, type:'non-api' },
-  { id:'deepseek',  icon:'🐋', name:'DeepSeek',  needsKey:1, model:'deepseek-chat',            base:'https://api.deepseek.com',            type:'oai' },
-  { id:'openai',    icon:'🤖', name:'OpenAI',    needsKey:1, model:'gpt-4o-mini',              base:'https://api.openai.com/v1',            type:'oai' },
-  { id:'anthropic', icon:'🧠', name:'Claude',    needsKey:1, model:'claude-sonnet-4-20250514', base:'https://api.anthropic.com/v1',         type:'ant' },
-  { id:'google',    icon:'💎', name:'Gemini',    needsKey:1, model:'gemini-2.0-flash',         base:'https://generativelanguage.googleapis.com/v1beta', type:'gg' },
+  { id:'mimo',        icon:'🔮', name:'MiMo',       needsKey:1, model:'mimo-v2.5',              base:'https://token-plan-cn.xiaomimimo.com/v1', type:'oai' },
+  { id:'deepseek',    icon:'🐋', name:'DeepSeek',   needsKey:1, model:'deepseek-chat',            base:'https://api.deepseek.com',            type:'oai' },
+  { id:'openai',      icon:'🤖', name:'OpenAI',     needsKey:1, model:'gpt-4o-mini',              base:'https://api.openai.com/v1',            type:'oai' },
+  { id:'anthropic',   icon:'🧠', name:'Claude',     needsKey:1, model:'claude-sonnet-4-20250514', base:'https://api.anthropic.com/v1',         type:'ant' },
+  { id:'google',      icon:'💎', name:'Gemini',     needsKey:1, model:'gemini-2.0-flash',         base:'https://generativelanguage.googleapis.com/v1beta', type:'gg' },
 ];
 
 const DEF = { provider:'google-translate', apiKey:'', model:'deepseek-chat', baseURL:'', targetLang:'zh-CN', mode:'bilingual', maxBatchSize:12, customPrompt:'', customChannels:'[]' };
@@ -389,6 +390,7 @@ function fetchModels(prov, url, key) {
     else if (prov === 'anthropic') return res(['claude-sonnet-4-20250514','claude-haiku-4-5','claude-opus-4-20250514']);
     else if (prov === 'google') return res(['gemini-2.0-flash','gemini-2.5-flash','gemini-2.5-pro']);
     else if (prov === 'openai') u = 'https://api.openai.com/v1/models';
+  else if (prov === 'mimo') u = 'https://token-plan-cn.xiaomimimo.com/v1/models';
     else u = url.replace(/\/+$/, '') + '/models';
     GM_xmlhttpRequest({
       method: 'GET', url: u,
