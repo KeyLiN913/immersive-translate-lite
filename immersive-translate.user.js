@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        沉浸式翻译 (Immersive Translate Lite)
 // @namespace   https://minis.app
-// @version     3.10.0
+// @version     3.11.0
 // @description 沉浸式翻译精简版 · openai-compatible 自定义渠道 · API 连通测试
 // @author      Minis
 // @match       *://*/*
@@ -213,16 +213,21 @@ class AIReq {
     });
   }
 
-  async translate(text, sl, tl) {
-    if (!text?.trim()) return '';
+  translate(text, sl, tl) {
+    if (!text?.trim()) return Promise.resolve('');
     const p = this._prov();
-    if (p.t === 'non-api') return await this._gt(text, tl || 'zh-CN');
+    const TIMEOUT = 30000;
+    const wrap = (promise) => Promise.race([
+      promise,
+      new Promise((_, rej) => setTimeout(() => rej(Error('请求超时 30s')), TIMEOUT))
+    ]);
+    if (p.t === 'non-api') return wrap(this._gt(text, tl || 'zh-CN'));
     const msgs = PE.build(text, sl || 'auto', tl || 'zh-CN');
     switch (p.t) {
-      case 'oai': return await this._oai(msgs, p.u, p.k, p.m);
-      case 'ant': return await this._ant(msgs, p.u, p.k, p.m);
-      case 'gg':  return await this._gg(msgs, p.u, p.k, p.m);
-      default:    return await this._oai(msgs, p.u, p.k, p.m);
+      case 'oai': return wrap(this._oai(msgs, p.u, p.k, p.m));
+      case 'ant': return wrap(this._ant(msgs, p.u, p.k, p.m));
+      case 'gg':  return wrap(this._gg(msgs, p.u, p.k, p.m));
+      default:    return wrap(this._oai(msgs, p.u, p.k, p.m));
     }
   }
 
@@ -259,9 +264,10 @@ const Hub = {
       while (running < MAX_CONCURRENT && queue.length) {
         const {key, text, resolve, reject} = queue.shift();
         running++;
+        console.log('[imtr] translating:', key, text.slice(0, 50));
         ai.translate(text, sl || 'auto', tgt)
-          .then(r => resolve(cleanOutput(r || text)))
-          .catch(reject)
+          .then(r => { console.log('[imtr] done:', key, (r||'').slice(0,30)); resolve(cleanOutput(r || text)); })
+          .catch(e => { console.error('[imtr] fail:', key, e.message); reject(e); })
           .finally(() => { running--; drain(); });
       }
     };
