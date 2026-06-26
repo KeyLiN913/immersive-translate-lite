@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        沉浸式翻译 (Immersive Translate Lite)
 // @namespace   https://minis.app
-// @version     3.11.0
+// @version     3.12.0
 // @description 沉浸式翻译精简版 · openai-compatible 自定义渠道 · API 连通测试
 // @author      Minis
 // @match       *://*/*
@@ -571,7 +571,8 @@ function showChannelMgr(refreshCallback) {
 @media(orientation:landscape) and (max-height:500px){
   #imtr-fab{bottom:12px;right:12px;width:44px;height:44px;}
   #imtr-panel{max-height:90vh;}
-}`;
+}
+@keyframes imtr-spin{to{transform:rotate(360deg)}}`;
   document.head.appendChild(s);
 
   // FAB
@@ -798,6 +799,7 @@ function showChannelMgr(refreshCallback) {
     Hub.setConfig(c);
     status.textContent = '⏳ 翻译中...';
     goBtn.disabled = true;
+    goBtn.innerHTML = '<span class="imtr-spin" style="display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:imtr-spin .6s linear infinite"></span> 翻译中';
     try {
       INT.stop(); NR.remove();
       await NR.go(c.targetLang);
@@ -805,7 +807,7 @@ function showChannelMgr(refreshCallback) {
       status.textContent = '✅ 翻译完成';
     } catch(e) { status.textContent = '❌ ' + (e.message||'失败'); }
     } catch(e) { console.error('[imtr] translate error:', e); status.textContent = '❌ ' + (e.message||'未知错误'); }
-    finally { goBtn.disabled = false; }
+    finally { goBtn.disabled = false; goBtn.textContent = '翻译此页'; }
   };
 
   undoBtn.onclick = () => { INT.stop(); NR.remove(); status.textContent = '🔄 已还原'; };
