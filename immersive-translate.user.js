@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        沉浸式翻译 (Immersive Translate Lite)
 // @namespace   https://minis.app
-// @version     3.9.0
+// @version     3.10.0
 // @description 沉浸式翻译精简版 · openai-compatible 自定义渠道 · API 连通测试
 // @author      Minis
 // @match       *://*/*
@@ -774,7 +774,10 @@ function showChannelMgr(refreshCallback) {
 
   // ── Translate ──
   goBtn.onclick = async () => {
+    console.log('[imtr] goBtn clicked');
+    try {
     const c = cfg();
+    console.log('[imtr] provider:', c.provider, 'apiKey:', c.apiKey ? 'set' : 'empty');
     // For custom channels, read key/url from inputs (user may have changed them)
     if (c.provider.startsWith('custom:')) {
       const chs = safeJSON(Store.g('cc', DEF.customChannels));
@@ -795,6 +798,7 @@ function showChannelMgr(refreshCallback) {
       INT.start(c.targetLang);
       status.textContent = '✅ 翻译完成';
     } catch(e) { status.textContent = '❌ ' + (e.message||'失败'); }
+    } catch(e) { console.error('[imtr] translate error:', e); status.textContent = '❌ ' + (e.message||'未知错误'); }
     finally { goBtn.disabled = false; }
   };
 
