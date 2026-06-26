@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        沉浸式翻译 (Immersive Translate Lite)
 // @namespace   https://minis.app
-// @version     3.12.0
+// @version     3.13.0
 // @description 沉浸式翻译精简版 · openai-compatible 自定义渠道 · API 连通测试
 // @author      Minis
 // @match       *://*/*
@@ -32,10 +32,12 @@
 const Store = {
   _c: {},
   g(k, f) {
-    try { const v = GM_getValue(k); return v !== undefined ? v : (f !== undefined ? f : undefined); }
-    catch { return f !== undefined ? f : undefined; }
+    if (this._c[k] !== undefined) return this._c[k];
+    try { const v = GM_getValue(k); this._c[k] = v !== undefined ? v : f; }
+    catch { this._c[k] = f; }
+    return this._c[k];
   },
-  s(k, v) { try { GM_setValue(k, v); } catch {} },
+  s(k, v) { this._c[k] = v; try { GM_setValue(k, v); } catch {} },
 };
 
 const BUILTIN = [
@@ -264,10 +266,9 @@ const Hub = {
       while (running < MAX_CONCURRENT && queue.length) {
         const {key, text, resolve, reject} = queue.shift();
         running++;
-        console.log('[imtr] translating:', key, text.slice(0, 50));
         ai.translate(text, sl || 'auto', tgt)
-          .then(r => { console.log('[imtr] done:', key, (r||'').slice(0,30)); resolve(cleanOutput(r || text)); })
-          .catch(e => { console.error('[imtr] fail:', key, e.message); reject(e); })
+          .then(r => resolve(cleanOutput(r || text)))
+          .catch(reject)
           .finally(() => { running--; drain(); });
       }
     };
@@ -462,7 +463,7 @@ function showChannelMgr(refreshCallback) {
   document.body.appendChild(modal);
 
   function getChannels() { return safeJSON(Store.g('cc', DEF.customChannels)); }
-  function saveChannels(chs) { console.log('[imtr] saveChannels: ' + JSON.stringify(chs)); Store.s('cc', JSON.stringify(chs)); }
+  function saveChannels(chs) { Store.s('cc', JSON.stringify(chs)); }
 
   function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 
@@ -520,7 +521,6 @@ function showChannelMgr(refreshCallback) {
 
   // Add handler
   document.getElementById('imtr-cm-add').onclick = () => {
-    console.log('[imtr] cm-add clicked');
     const name = document.getElementById('imtr-cm-name').value.trim();
     const u = document.getElementById('imtr-cm-url').value.trim();
     const k = document.getElementById('imtr-cm-key').value.trim();
@@ -577,7 +577,7 @@ function showChannelMgr(refreshCallback) {
 
   // FAB
   const fab = document.createElement('div');
-  fab.id = 'imtr-fab'; fab.textContent = '翻'; fab.title = 'v3.6.0';
+  fab.id = 'imtr-fab'; fab.textContent = '翻'; fab.title = 'v3.13.0';
   document.body.appendChild(fab);
 
   // Overlay
@@ -686,7 +686,6 @@ function showChannelMgr(refreshCallback) {
   function renderProviders() {
     const cur = Store.g('p', DEF.provider);
     const chs = safeJSON(Store.g('cc', DEF.customChannels));
-    console.log('[imtr] renderProviders: cur=' + cur, 'channels=' + chs.length, 'chs=' + JSON.stringify(chs));
     provSel.innerHTML = '';
     BUILTIN.forEach(p => {
       const o = document.createElement('option');
@@ -702,7 +701,6 @@ function showChannelMgr(refreshCallback) {
       provSel.appendChild(og);
     }
     provSel.value = cur;
-    console.log('[imtr] provSel options:', provSel.options.length, 'groups:', provSel.querySelectorAll('optgroup').length);
   }
 
   // ── Toggle visibility ──
@@ -781,10 +779,8 @@ function showChannelMgr(refreshCallback) {
 
   // ── Translate ──
   goBtn.onclick = async () => {
-    console.log('[imtr] goBtn clicked');
     try {
     const c = cfg();
-    console.log('[imtr] provider:', c.provider, 'apiKey:', c.apiKey ? 'set' : 'empty');
     // For custom channels, read key/url from inputs (user may have changed them)
     if (c.provider.startsWith('custom:')) {
       const chs = safeJSON(Store.g('cc', DEF.customChannels));
